@@ -15,10 +15,10 @@ const renderTodos = () => {
 	const thead = document.createElement("thead");
 	thead.innerHTML = `
     <tr>
-      <th scope="col">id</th>
+      <th class="sort" scope="col">id</th>
       <th scope="col">Başlık</th>
-      <th scope="col">Kullanıcı Id</th>
-      <th scope="col">Durum</th>
+      <th class="sort" scope="col">Kullanıcı Id</th>
+      <th class="sort" scope="col">Durum</th>
       <th scope="col"></th>
     </tr>
   `;
@@ -33,12 +33,10 @@ const renderTodos = () => {
       <td>${item.userId}</td>
       <td>${item.completed ? "Tamamlandı" : "Yapılacak"}</td>
       <td>
-        <button class="btn btn-xs btn-danger remove" data-id=${
-					item.id
-				}>Sil</button>
-        <button class="btn btn-xs btn-warning edit" data-id=${
-					item.id
-				}>Düzenle</button>
+        <button class="btn btn-xs btn-danger remove" data-id=${item.id
+			}>Sil</button>
+        <button class="btn btn-xs btn-warning edit" data-id=${item.id
+			}>Düzenle</button>
       </td>
     `;
 		tbody.appendChild(tr);
@@ -47,7 +45,52 @@ const renderTodos = () => {
 		renderItem(item);
 	});
 	table.appendChild(tbody);
+
+	const pagination = () => {
+		const pagination = {
+			init: function () {
+				return (`
+				<nav aria-label="Page navigation example">
+					<ul class="pagination">
+						${this.pages(totalPages)}
+					</ul>
+				</nav>
+				`);
+			},
+			pages: function (totalPages) {
+				let pages = '';
+				for (let i = 1; i <= totalPages; i++) {
+					pages += `<li class="page-item"><a class="page-link" href="#">${i}</a></li>`;
+				}
+				return pages;
+			}
+		};
+
+		const totalPages = Math.ceil(todos.length / 15);
+		const paginationHtml = pagination.init();
+		table.insertAdjacentHTML('afterend', paginationHtml);
+
+		const paginationItems = document.querySelectorAll('.page-item');
+		paginationItems.forEach((item) => {
+			item.addEventListener('click', (e) => {
+				const page = e.target.innerText;
+				const start = (page - 1) * 15;
+				const end = start + 15;
+				tbody.innerHTML = '';
+				todos.slice(start, end).forEach((item) => {
+					renderItem(item);
+				});
+				paginationItems.forEach((item) => {
+					item.classList.remove('active');
+				});
+				e.target.parentElement.classList.add('active');
+			});
+		});
+	};
+
 	root.append(table);
+
+	pagination();
 
 	document.querySelectorAll(".remove").forEach((button) => {
 		button.addEventListener("click", (e) => {
@@ -67,6 +110,24 @@ const renderTodos = () => {
 			editModal.querySelector("#completed").checked = todo.completed;
 			editModal.style.display = "block";
 			editModal.classList.add("show");
+		});
+	});
+
+	// const status = todos.map((todo) => todo.completed);
+	// const id = todos.map((todo) => todo.id);
+	// const userId = todos.map((todo) => todo.userId);
+
+	document.querySelectorAll('.sort').forEach((item) => {
+		item.addEventListener('click', (e) => {
+			const key = e.target.innerText;
+			if (key === 'Durum') {
+				todos.sort((a, b) => a.completed - b.completed);
+			} else if (key === 'id') {
+				todos.sort((a, b) => a.id - b.id);
+			} else if (key === 'Kullanıcı Id') {
+				todos.sort((a, b) => a.userId - b.userId);
+			}
+			renderTodos();
 		});
 	});
 };
@@ -98,9 +159,11 @@ fetch(todosUrl)
 		errorLogger(error);
 	});
 
-	// sıralama ödevi algoritması
-	// table thead kısmındaki sıralama yapılacak kolonlara event listener eklenecek.
-	// event listener hangi kolon için tıklanıyorsa
-	// sort metodu kullanılarak sıralama yapılacak
-	// sıralanmış todos'todus içerisine atılacak
-	// renderTodos metodu çalıştırılacak.
+// sıralama ödevi algoritması
+// table thead kısmındaki sıralama yapılacak kolonlara event listener eklenecek.
+// event listener hangi kolon için tıklanıyorsa
+// sort metodu kullanılarak sıralama yapılacak
+// sıralanmış todos'todus içerisine atılacak
+// renderTodos metodu çalıştırılacak.
+
+
